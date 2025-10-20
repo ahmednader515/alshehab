@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Facebook, Instagram, Twitter, Youtube, Linkedin } from "lucide-react";
+import { Facebook, Instagram, Twitter, Youtube, Linkedin, MessageCircle } from "lucide-react";
 
 // Custom TikTok Icon Component
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -30,7 +30,7 @@ export const Footer = () => {
             : ''
         }`}>
           <div className="inline-block bg-[#27c08d]/10 border-2 border-[#27c08d]/20 rounded-lg px-6 py-3 mb-4">
-            <p className="font-semibold text-lg text-[#27c08d]">الدعم الفني: 01091659219</p>
+            <p className="font-semibold text-lg text-[#27c08d]"> واتساب : 01091659219</p>
           </div>
           
           {/* Social Media Section */}
@@ -47,7 +47,7 @@ export const Footer = () => {
                 <Facebook className="w-6 h-6 text-[#27c08d]" />
               </a>
               <a 
-                href="https://www.instagram.com/shehabezz38?igsh=MTZnZjNzZGZzOGswcg==" 
+                href="https://www.instagram.com/sheha_bezz38gmailcom?igsh=MTRqOHVkZ3F5bWowbQ==" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-3 bg-[#27c08d]/10 hover:bg-[#27c08d]/20 rounded-full transition-colors duration-200"
@@ -63,6 +63,15 @@ export const Footer = () => {
                 aria-label="TikTok"
               >
                 <TikTokIcon className="w-6 h-6 text-[#27c08d]" />
+              </a>
+              <a 
+                href="https://wa.me/201091659219"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-3 bg-[#27c08d]/10 hover:bg-[#27c08d]/20 rounded-full transition-colors duration-200"
+                aria-label="WhatsApp"
+              >
+                <MessageCircle className="w-6 h-6 text-[#27c08d]" />
               </a>
             </div>
           </div>

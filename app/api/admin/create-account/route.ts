@@ -27,6 +27,11 @@ export async function POST(req: Request) {
       return new NextResponse("Passwords do not match", { status: 400 });
     }
 
+    // Check if phone number is the same as parent phone number
+    if (phoneNumber === parentPhoneNumber) {
+      return new NextResponse("Phone number cannot be the same as parent phone number", { status: 400 });
+    }
+
     // Check if user already exists
     const existingUser = await db.user.findFirst({
       where: {

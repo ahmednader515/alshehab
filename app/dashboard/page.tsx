@@ -250,7 +250,7 @@ const CoursesPage = async () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">مرحباً بك في لوحة التحكم</h1>
-        <p className="text-muted-foreground">استمر من حيث وقفت في رحلة التعلم</p>
+        <p className="text-muted-foreground">جرب يمكن اختيارك صح</p>
       </div>
 
       {/* Stats and Balance Row */}

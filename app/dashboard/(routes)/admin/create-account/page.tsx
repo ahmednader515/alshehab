@@ -82,6 +82,8 @@ export default function CreateAccountPage() {
           toast.error("رقم الهاتف مسجل مسبقاً");
         } else if (errorMessage.includes("Parent phone number already exists")) {
           toast.error("رقم هاتف الوالد مسجل مسبقاً");
+        } else if (errorMessage.includes("Phone number cannot be the same as parent phone number")) {
+          toast.error("رقم الهاتف لا يمكن أن يكون نفس رقم هاتف الوالد");
         } else if (errorMessage.includes("Passwords do not match")) {
           toast.error("كلمات المرور غير متطابقة");
         } else {
