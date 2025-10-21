@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart, Compass, Layout, List, Wallet, Shield, Users, Eye, TrendingUp, BookOpen, FileText, Award, PlusSquare } from "lucide-react";
+import { BarChart, Compass, Layout, List, Wallet, Shield, Users, Eye, TrendingUp, BookOpen, FileText, Award, PlusSquare, Key } from "lucide-react";
 import { SidebarItem } from "./sidebar-item";
 import { usePathname } from "next/navigation";
 
@@ -47,6 +47,21 @@ const teacherRoutes = [
         icon: Users,
         label: "إدارة الطلاب",
         href: "/dashboard/teacher/users",
+    },
+    {
+        icon: Wallet,
+        label: "إدارة الأرصدة",
+        href: "/dashboard/teacher/balances",
+    },
+    {
+        icon: BookOpen,
+        label: "اضافة و حذف الكورسات",
+        href: "/dashboard/teacher/add-courses",
+    },
+    {
+        icon: Key,
+        label: "كلمات المرور",
+        href: "/dashboard/teacher/passwords",
     },
     {
         icon: Shield,
