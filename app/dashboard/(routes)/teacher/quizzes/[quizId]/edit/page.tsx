@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, GripVertical, X } from "lucide-react";
+import { Plus, Trash2, GripVertical, X, Mic } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { UploadDropzone } from "@/lib/uploadthing";
 
@@ -66,6 +66,10 @@ const EditQuizPage = () => {
     const router = useRouter();
     const params = useParams();
     const quizId = params.quizId as string;
+    const pathname = usePathname();
+    const dashboardPath = pathname.includes("/dashboard/admin/")
+        ? "/dashboard/admin/quizzes"
+        : "/dashboard/teacher/quizzes";
     
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourse, setSelectedCourse] = useState<string>("");
@@ -81,11 +85,21 @@ const EditQuizPage = () => {
     const [isUpdatingQuiz, setIsUpdatingQuiz] = useState(false);
     const [isLoadingQuiz, setIsLoadingQuiz] = useState(true);
     const [uploadingImages, setUploadingImages] = useState<{ [key: string]: boolean }>({});
+    const [listeningQuestionId, setListeningQuestionId] = useState<string | null>(null);
+    const recognitionRef = useRef<any>(null);
 
     useEffect(() => {
         fetchCourses();
         fetchQuiz();
     }, [quizId]);
+
+    useEffect(() => {
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, []);
 
     const fetchCourses = async () => {
         try {
@@ -129,12 +143,12 @@ const EditQuizPage = () => {
                 await fetchCourseItems(quiz.courseId);
             } else {
                 toast.error("حدث خطأ أثناء تحميل الاختبار");
-                router.push("/dashboard/teacher/quizzes");
+                router.push(dashboardPath);
             }
         } catch (error) {
             console.error("Error fetching quiz:", error);
             toast.error("حدث خطأ أثناء تحميل الاختبار");
-            router.push("/dashboard/teacher/quizzes");
+            router.push(dashboardPath);
         } finally {
             setIsLoadingQuiz(false);
         }
@@ -192,7 +206,91 @@ const EditQuizPage = () => {
         }
     };
 
+    const stopListening = () => {
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.stop();
+            } catch (error) {
+                console.error("[SPEECH_RECOGNITION_STOP]", error);
+            }
+            recognitionRef.current = null;
+        }
+        setListeningQuestionId(null);
+    };
+
+    const handleSpeechInput = (index: number) => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const question = questions[index];
+        if (!question) {
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            toast.error("المتصفح لا يدعم الإملاء الصوتي");
+            return;
+        }
+
+        if (listeningQuestionId === question.id) {
+            stopListening();
+            return;
+        }
+
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+
+        try {
+            const recognition = new SpeechRecognition();
+            recognition.lang = "ar-SA";
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                setListeningQuestionId(question.id);
+            };
+
+            recognition.onresult = (event: any) => {
+                const transcript = event.results?.[0]?.[0]?.transcript;
+                if (transcript) {
+                    setQuestions((prev) => {
+                        const updated = [...prev];
+                        const current = updated[index];
+                        if (!current) {
+                            return prev;
+                        }
+                        const newText = current.text ? `${current.text} ${transcript}` : transcript;
+                        updated[index] = { ...current, text: newText };
+                        return updated;
+                    });
+                }
+            };
+
+            recognition.onerror = (event: any) => {
+                console.error("[SPEECH_RECOGNITION_ERROR]", event.error);
+                toast.error("تعذر التعرف على الصوت");
+            };
+
+            recognition.onend = () => {
+                setListeningQuestionId(null);
+                recognitionRef.current = null;
+            };
+
+            recognitionRef.current = recognition;
+            recognition.start();
+        } catch (error) {
+            console.error("[SPEECH_RECOGNITION]", error);
+            toast.error("تعذر بدء التسجيل الصوتي");
+            stopListening();
+        }
+    };
+
     const handleUpdateQuiz = async () => {
+        stopListening();
         if (!selectedCourse || !quizTitle.trim()) {
             toast.error("يرجى إدخال جميع البيانات المطلوبة");
             return;
@@ -286,7 +384,7 @@ const EditQuizPage = () => {
 
             if (response.ok) {
                 toast.success("تم تحديث الاختبار بنجاح");
-                router.push("/dashboard/teacher/quizzes");
+                router.push(dashboardPath);
             } else {
                 const error = await response.json();
                 toast.error(error.message || "حدث خطأ أثناء تحديث الاختبار");
@@ -318,6 +416,9 @@ const EditQuizPage = () => {
     };
 
     const removeQuestion = (index: number) => {
+        if (questions[index]?.id === listeningQuestionId) {
+            stopListening();
+        }
         const updatedQuestions = questions.filter((_, i) => i !== index);
         setQuestions(updatedQuestions);
     };
@@ -385,7 +486,7 @@ const EditQuizPage = () => {
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                     تعديل الاختبار
                 </h1>
-                <Button variant="outline" onClick={() => router.push("/dashboard/teacher/quizzes")}>
+                <Button variant="outline" onClick={() => router.push(dashboardPath)}>
                     العودة إلى الاختبارات
                 </Button>
             </div>
@@ -588,7 +689,29 @@ const EditQuizPage = () => {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label>نص السؤال</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label>نص السؤال</Label>
+                                        <div className="flex items-center gap-2">
+                                            {listeningQuestionId === question.id && (
+                                                <span className="text-xs text-blue-600">
+                                                    جاري الاستماع...
+                                                </span>
+                                            )}
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                aria-pressed={listeningQuestionId === question.id}
+                                                onClick={() => handleSpeechInput(index)}
+                                                className={listeningQuestionId === question.id ? "text-red-500 animate-pulse" : ""}
+                                            >
+                                                <Mic className="h-4 w-4" />
+                                                <span className="sr-only">
+                                                    {listeningQuestionId === question.id ? "إيقاف التسجيل الصوتي" : "بدء التسجيل الصوتي"}
+                                                </span>
+                                            </Button>
+                                        </div>
+                                    </div>
                                     <Textarea
                                         value={question.text}
                                         onChange={(e) => updateQuestion(index, "text", e.target.value)}
@@ -737,7 +860,7 @@ const EditQuizPage = () => {
                 <div className="flex justify-end space-x-2">
                     <Button
                         variant="outline"
-                        onClick={() => router.push("/dashboard/teacher/quizzes")}
+                        onClick={() => router.push(dashboardPath)}
                     >
                         إلغاء
                     </Button>
