@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { ScrollProgress } from "@/components/scroll-progress";
+import { CaptchaGate } from "@/components/captcha-gate";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/db"; // Import db client
 
@@ -40,11 +41,15 @@ type CourseWithProgress = Course & {
 };
 
 export default function HomePage() {
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const [courses, setCourses] = useState<CourseWithProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
 
   useEffect(() => {
+    // Only fetch courses after CAPTCHA is verified
+    if (!isCaptchaVerified) return;
+
     const fetchCourses = async () => {
       try {
         setIsLoading(true);
@@ -68,7 +73,7 @@ export default function HomePage() {
     };
 
     fetchCourses();
-  }, []);
+  }, [isCaptchaVerified]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -102,6 +107,11 @@ export default function HomePage() {
       });
     }
   };
+
+  // Show CAPTCHA gate if not verified
+  if (!isCaptchaVerified) {
+    return <CaptchaGate onVerified={() => setIsCaptchaVerified(true)} pageName="الصفحة الرئيسية" />;
+  }
 
   return (
     <div className="h-full w-full bg-background">

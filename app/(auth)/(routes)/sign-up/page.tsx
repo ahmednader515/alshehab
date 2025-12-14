@@ -11,9 +11,11 @@ import axios, { AxiosError } from "axios";
 import { Check, X, Eye, EyeOff, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import ReCAPTCHA from "react-google-recaptcha";
+import { CaptchaGate } from "@/components/captcha-gate";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -106,6 +108,11 @@ export default function SignUpPage() {
       setIsLoading(false);
     }
   };
+
+  // Show CAPTCHA gate if not verified
+  if (!isCaptchaVerified) {
+    return <CaptchaGate onVerified={() => setIsCaptchaVerified(true)} pageName="صفحة التسجيل" />;
+  }
 
   return (
     <div className="flex min-h-screen bg-background overflow-y-auto">
