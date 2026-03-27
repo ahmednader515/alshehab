@@ -11,6 +11,7 @@
     "fix:quiz-options": "node scripts/fix-quiz-options.js",
     "test:quiz-options": "node scripts/test-quiz-options.js",
     "migrate-uploadthing": "npx tsx ./scripts/migrate-uploadthing-files.ts",
+    "download-uploadthing": "npx tsx ./scripts/download-uploadthing-files.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^4.1.3",
     "@prisma/client": "^6.6.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "@radix-ui/react-alert-dialog": "^1.1.7",
     "@radix-ui/react-avatar": "^1.1.4",
     "@radix-ui/react-checkbox": "^1.1.5",
